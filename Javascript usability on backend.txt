@@ -1,0 +1,46 @@
+ ///<summary>Simply takes in the id and outputs the link that we need</summary>
+        /// <author>Drew Thomas</author>
+        /// <date>6/29/2016</date>
+        /// <exceptions></exceptions>
+        /// <return>returns the link that needs to be passed to the email service</return>
+        /// <param name="candidateID"></param>
+        /// <history>
+        /// Date   Author    Change Reason     Change Description
+        /// ----------------------------------------------------------------
+        ///
+        /// ----------------------------------------------------------------
+        /// </history>
+        public string LinkToResults(int? candidateID)
+        {
+            log.Debug(string.Format
+               ("debug - LinkToResults method called with parameter '{0}'", candidateID));
+
+            //grabbing the emails of the correct reviewers assuming that the reviewers ID will be the values of the parameters
+            string link = " ";
+            var email1 = " ";
+            var email2 = " ";
+
+            return link;
+        }
+
+        ///<summary>Takes a candidate id and passes an object back</summary>
+        /// <author>Drew Thomas</author>
+        /// <date>6/29/2016</date>
+        /// <exceptions></exceptions>
+        /// <return>Candidate object</return>
+        /// <param name="id"></param>
+        /// <history>
+        /// Date   Author    Change Reason     Change Description
+        /// ----------------------------------------------------------------
+        /// 
+        /// ----------------------------------------------------------------
+        /// </history>
+        public Candidate CandidateObj(int id)
+        {
+            log.Debug(string.Format
+               ("debug - CandidateObj method called with parameter '{0}'", id));
+
+            Candidate candidate = new Candidate();
+            candidate = Db.Candidates.Find(id);
+            return candidate;
+        }

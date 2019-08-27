@@ -1,0 +1,234 @@
+﻿@model Cts.TechCheck.Dto.CandidateInvitationDTO
+
+@{
+    ViewBag.Title = "Select Tests & Send Invitation";
+    Layout = "~/Views/Shared/_BootstrapLayout.cshtml";
+}
+
+@using Cts.TechCheck.Web
+
+<!--Form with drop-downs for each model from DTO-->
+    @using (Html.BeginForm("CreateCandidateInvitation", "Recruiter", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="container">
+            <h1>@ViewBag.Title</h1>
+
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+            <div class="row">
+                <!--Drop down menu for candidates-->
+                <div class="col-lg-3 col-md-3">
+                    @Html.LabelFor(m => m.SelectedCandidate)
+                    @Html.DropDownListEx("SelectedCandidate", Model.Candidates, null, new { @class = "form-control" }, false)
+                </div>
+
+                <!--Drop down menu for eval packages-->
+                <div class="col-lg-3 col-md-3">
+                    @Html.LabelFor(m => m.SelectedEvaluationPkg)
+                    @Html.DropDownListEx("SelectedEvaluationPkg", Model.Packages, null, new { @class = "form-control" }, false)
+                </div>
+
+                <div class="col-lg-3 col-md-3">
+                    <p id="add-time">If a Candidate qualifies,<br /> please select additional time</p>
+                </div>
+
+                <div class="col-lg-3 col-md-3">
+                    <br />
+                    <!--Dropdown for adding additional time to allotted time on evaluation package-->
+                    @Html.DropDownListFor(@m => m.SelectAllottedTime, Model.additionalMinutes, new { @class = "form-control" })
+                </div>
+            </div>
+
+            <div class="form-group entry-fields">
+                @Html.Label("To") <br />
+                @Html.TextBoxFor(m => m.CandidateEmail, "Candidate Email", new { @class = "form-control", placeholder = "Populates Based on Selected Candidate", @readonly = "readonly" })
+                @Html.ValidationMessageFor(m => m.CandidateEmail, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="form-group entry-fields">
+                @Html.Label("From") <br />
+                @Html.TextBoxFor(m => m.RecruiterEmail, "Recruiter Email", new { @class = "form-control", placeholder = "TechCheck@askcts.com", @readonly = "readonly" })
+            </div>
+
+            <div class="form-group entry-fields">
+                @Html.Label("CC") <br />
+                @Html.TextBoxFor(m => m.CcEmailAddress, "Additional Emails", new { @class = "form-control", placeholder = "Enter Optional Email Address(es)" })
+                @Html.ValidationMessageFor(m => m.CcEmailAddress, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="form-group email-body">
+                @Html.Label("Email Body")
+                <div id="template-dropdown">
+                    @Html.DropDownListEx("EmailMessageDrop", Model.Templates, null, new { @class = "form-control" }, false)
+                </div>
+                @Html.TextAreaFor(m => m.EmailMessage, new { @class = "form-control", @rows = 10, @cols = 40, @id = "MessageArea" })
+                @Html.ValidationMessageFor(m => m.EmailMessage, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="form-group">
+                <input id="cancelBtn" type="button" value="Cancel" class="btn btn-danger" onclick="location.href='@Url.Action("RecruiterDashboard", "Recruiter")'" />
+
+                <!--Modal button to Trigger-->
+                <input id="saveTemplateBtn" type="button" value="Save Email as Template" class="btn btn-primary" data-toggle="modal" data-target="#myModal" />
+
+                <input id="sendEmailBtn" type="submit" value="Send Email" class="btn btn-primary" />
+            </div>
+        </div>
+    }
+
+<!--Modal-->
+<div id="myModal" class="modal fade" role="dialog">
+<form id="templateForm">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Save Template</h4>
+            </div>
+            <div class="modal-body">
+                @Html.Label("Template Type")
+                @Html.DropDownListEx("TemplateType", Model.TemplateTypes, null, new { @class = "form-control" }, false)
+
+                @Html.Label("Template Name")
+                @Html.TextBoxFor(m => m.TemplateName, new { @class = "form-control", placeholder = "Enter a Unique Template Name" }) <br />
+
+                @Html.Label("Template Body")
+                @Html.TextAreaFor(m => m.TemplateBody, new { @class = "form-control", @rows = 10 })
+
+                <!--Alert box for successfully saving template-->
+                <div id="templateSuccess" class="hidden alert alert-success fade in" style="margin:0px 0px 0px 0px;min-width:568px;">
+                    <strong>Success!</strong> Template saved successfully.
+                </div>
+
+                <!--Alert box for unsuccessfully saved template-->
+                <div id="templateFailure" class="hidden alert alert-danger fade in" style="margin:0px 0px 0px 0px;min-width:568px;">
+                    <strong>Danger!</strong> Template not saved. Please select a unique name.
+                </div>
+
+                <!--Alert box for missing name/body-->
+                <div id="templateMissing" class="hidden alert alert-danger fade in" style="margin:0px 0px 0px 0px;min-width:568px;">
+                    <strong>Danger!</strong> Template not saved. Please enter a name/body.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <input id="submitTemplateBtn" type="submit" value="Save Template" class="btn btn-primary" />
+                <button id="closeTemplate" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</form>
+</div>
+
+@Styles.Render("~/Content/CandidateInvitation.css")
+
+<script>
+    // AJAX call for autopopulating To email field
+    $(document).ready(function () {
+        // select correct candidate from candidate followed from
+        // recruiter dashboard
+        if (@Model.CandidateKey != -1) {
+            $('option[value=' + @Model.CandidateKey + ']')
+                .attr('selected',true);
+        }
+
+        // autopopulate the To field with the candidate's email on load
+        $.ajax({
+            url: '@Url.Action("GetEmailByCandidateKey", "Recruiter")',
+            type: 'post',
+            data: JSON.stringify({
+                candidateKey: $('#SelectedCandidate').val()
+            }),
+            contentType: 'application/json',
+            success: function (data) {
+                $('#CandidateEmail').val(data);
+            }
+        });
+
+        // autopopulate the To field with the candidate's email when
+        // selected candidate changes
+        $('#SelectedCandidate').on('change', function () {
+            $.ajax({
+                url: '@Url.Action("GetEmailByCandidateKey", "Recruiter")',
+                type: 'post',
+                data: JSON.stringify({
+                    candidateKey: $(this).val()
+                }),
+                contentType: 'application/json',
+                success: function (data) {
+                    $('#CandidateEmail').val(data);
+                }
+            });
+        });
+
+        // call for autopopulating Email Body text box
+        // and for toggling appearance of save template button
+        $('#EmailMessageDrop').on('change', function () {
+            $('#MessageArea').val($(this).val());
+
+            if ($(this).val() === "") {
+                $('#saveTemplateBtn').removeClass('hidden');
+            }
+            else {
+                $('#saveTemplateBtn').addClass('hidden');
+            }
+        });
+
+        // call for copying custom message from main screen
+        // to template modal window
+        $('#saveTemplateBtn').click(function () {
+            $('#TemplateBody').val($('#MessageArea').val());
+        });
+
+        // AJAX call to submit and save template, and return updated
+        // dropdown list
+        $('#templateForm').on("submit", function (e) {
+            e.preventDefault();
+            var template = $(e.currentTarget);
+            $.ajax({
+                url: '@Url.Action("SaveEmailTemplate", "Recruiter")',
+                type: 'post',
+                data: template.serialize(),
+                error : function (data) {
+                        $('#templateFailure').toggleClass('hidden');
+                    },
+                success: function (data) {
+                    if (data.success != false) {
+                        $('#closeTemplate').trigger('click');
+                        //$('#templateSuccess').toggleClass('hidden');
+                        $('#EmailMessageDrop').append($('<option>', {
+                            value: data.Body,
+                            text: $('#TemplateType').find('option:selected').text() + data.Name
+                        }));
+                    }
+                    else {
+                        $('#templateMissing').toggleClass('hidden');
+                    }
+                }
+            });
+        });
+
+        // hide alerts from template addition
+        $('#submitTemplateBtn').click(function () {
+            $('#templateFailure').addClass('hidden');
+            //$('#templateSuccess').addClass('hidden');
+            $('#templateMissing').addClass('hidden');
+        });
+
+        $('#closeTemplate').click(function () {
+            $('#templateFailure').addClass('hidden');
+            //$('#templateSuccess').addClass('hidden');
+            $('#templateMissing').addClass('hidden');
+        });
+
+        $('.close').click(function () {
+            $('#templateFailure').addClass('hidden');
+            //$('#templateSuccess').addClass('hidden');
+            $('#templateMissing').addClass('hidden');
+        });
+
+
+    });
+</script>
