@@ -5,12 +5,14 @@ using System.Web.Mvc;
 
 namespace EmailServicing.Controllers
 {
-    [Authorize]
+    
     public class HomeController : Controller
     {
         public ActionResult Index()
         {
             return View();
         }
+
+
     }
 }

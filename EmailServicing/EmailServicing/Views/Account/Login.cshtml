@@ -5,6 +5,16 @@
 }
 
 <h2>@ViewBag.Title.</h2>
+<h2>
+    <a href="http://drewthomas.live">Drew Thomas Homepage</a>
+</h2>
+
+<div>
+    @Html.ActionLink("Go to Send Email", "Index", "EmailService")
+    @*
+        string linkText, string actionName, string controllerName
+    *@
+</div>
 <div class="row">
     <div class="col-md-8">
         <section id="loginForm">
